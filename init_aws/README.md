@@ -16,7 +16,7 @@ Use this to setup the remote backend on S3.
 4. Comment the #LOCAL RUN block and uncomment the #REMOTE RUN block
 4. Migrate the state to the remote backend using 
     ```
-    terraform apply -migrate-state -force-copy
+    terraform init -migrate-state -force-copy
     ```
 
 ## Destroy the remote backend
@@ -25,7 +25,7 @@ Make sure this is the last operation you do and nothing else depends on this sta
 1. comment the block #REMOTE RUN and uncomment the #LOCAL RUN block
 2. Migrate the state to local backend (so that the bucket can be purged)
     ```
-    terraform apply -migrate-state -force-copy
+    terraform init -migrate-state -force-copy
     ```
 3. Destroy the resources
     ```
