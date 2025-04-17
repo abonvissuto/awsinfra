@@ -56,10 +56,16 @@ variable "health_check_endpoint" {
 
 variable "max_memory" {
   description = "RAM amount for task. Default 512"
-  default  = 512
+  default     = 512
 }
 
 variable "max_cpu" {
   description = "Max CPU usage. Default 0.25"
-  default  = 256
+  default     = 256
+}
+
+variable "environment_variables" {
+  description = "Environment variables for ECS task"
+  type        = map(string)
+  default     = {}
 }

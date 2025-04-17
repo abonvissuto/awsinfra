@@ -16,6 +16,12 @@ resource "aws_ecs_task_definition" "app_task" {
             "hostPort" : tonumber(var.container_port)
           }
         ],
+        "environment" : [
+          for k, v in var.environment_variables : {
+            name  = k
+            value = v
+          }
+        ]
         "memory" : tonumber(var.max_memory),
         "cpu" : tonumber(var.max_cpu)
       }
@@ -66,7 +72,7 @@ resource "aws_lb_target_group" "target_group" {
     interval            = 30
     timeout             = 10
     healthy_threshold   = 5
-    unhealthy_threshold = 2
+    unhealthy_threshold = 5
     matcher             = "200"
   }
 }
@@ -87,7 +93,7 @@ resource "aws_ecs_service" "app_service" {
   task_definition = aws_ecs_task_definition.app_task.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-
+  depends_on      = [aws_lb_target_group.target_group]
   load_balancer {
     target_group_arn = aws_lb_target_group.target_group.arn
     container_name   = aws_ecs_task_definition.app_task.family

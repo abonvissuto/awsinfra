@@ -22,4 +22,10 @@ locals {
   ecs_task_execution_role_name   = "ECSTaskExecutionRole"
   target_group_name              = "openwebui-alb-group"
   health_check_endpoint          = "/health"
+  openwebui_env = {
+    ENV                 = "prod"
+    ADMIN_USER_EMAIL    = sensitive(var.openwebui_admin_user_email)
+    ADMIN_USER_PASSWORD = sensitive(var.openwebui_admin_user_password)
+    ENABLE_SIGNUP       = false
+  }
 }
