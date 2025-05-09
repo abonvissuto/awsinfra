@@ -1,5 +1,9 @@
-output "ecs_cluster_output" {
-  value = module.ecsCluster.application_dns_name
+output "openwebui_cluster" {
+  value = module.openwebui.application_dns_name
+}
+
+output "battleground_cluster" {
+  value = module.battleground.application_dns_name
 }
 
 output "bedrock_gateway" {
