@@ -18,6 +18,12 @@ variable "container_image" {
   type        = string
 }
 
+variable "container_image_version" {
+  description = "Version of the Docker image. Defaults to 'latest'"
+  type        = string
+  default     = "latest"
+}
+
 variable "container_port" {
   description = "Container Port"
   type        = number
@@ -68,4 +74,19 @@ variable "environment_variables" {
   description = "Environment variables for ECS task"
   type        = map(string)
   default     = {}
+}
+
+variable "HTTPS_enabled" {
+  description = "True if HTTPS is enabled"
+  type        = bool
+  default     = false
+}
+
+variable "wildcard_cert_arn" {
+  description = "ARN of the wildcard certificate"
+  type        = string
+}
+
+variable "public_dns_name" {
+  description = "Public DNS name that gives access to the service (e.g. service1.dev.example.com)"
 }

@@ -8,7 +8,7 @@ resource "aws_ecs_task_definition" "app_task" {
     [
       {
         "name" : "${var.app_task_name}",
-        "image" : "${var.container_image}",
+        "image" : "${var.container_image}:${var.container_image_version}",
         "essential" : true,
         "portMappings" : [
           {
@@ -48,6 +48,13 @@ resource "aws_security_group" "load_balancer_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -77,11 +84,58 @@ resource "aws_lb_target_group" "target_group" {
   }
 }
 
+# HTTP only deployment
 resource "aws_lb_listener" "listener" {
+  count             = var.HTTPS_enabled ? 0 : 1
   load_balancer_arn = aws_alb.application_load_balancer.arn
   port              = "80"
   protocol          = "HTTP"
   default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.target_group.arn
+  }
+}
+
+# HTTPS redirect (80 -> 443)
+resource "aws_lb_listener" "listener_http" {
+  count             = var.HTTPS_enabled ? 1 : 0
+  load_balancer_arn = aws_alb.application_load_balancer.arn
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = 443
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+# HTTPS only (443)
+resource "aws_lb_listener" "listener_https" {
+  count             = var.HTTPS_enabled ? 1 : 0
+  load_balancer_arn = aws_alb.application_load_balancer.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.wildcard_cert_arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.target_group.arn
+  }
+}
+
+resource "aws_lb_listener_rule" "this" {
+  count        = var.HTTPS_enabled ? 1 : 0
+  listener_arn = aws_lb_listener.listener_https[0].arn
+  condition {
+    host_header {
+      values = [var.public_dns_name]
+    }
+  }
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.target_group.arn
   }
@@ -94,6 +148,9 @@ resource "aws_ecs_service" "app_service" {
   launch_type     = "FARGATE"
   desired_count   = 1
   depends_on      = [aws_lb_target_group.target_group]
+  lifecycle {
+    create_before_destroy = true
+  }
   load_balancer {
     target_group_arn = aws_lb_target_group.target_group.arn
     container_name   = aws_ecs_task_definition.app_task.family

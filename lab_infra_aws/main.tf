@@ -52,6 +52,11 @@ locals {
   )
 }
 
+module "wildcard_cert" {
+  source      = "../modules/acm"
+  domain_name = var.domain_name
+}
+
 module "openwebui" {
   source                         = "../modules/ecs"
   app_cluster_name               = local.openwebui_app_cluster_name
@@ -61,15 +66,26 @@ module "openwebui" {
   application_load_balancer_name = local.openwebui_app_load_balancer_name
   availability_zones             = local.openwebui_availability_zones
   container_port                 = local.openwebui_container_port
-  container_image                = local.openwebui_container_image # module.ecr_registry.repository_url
+  container_image                = local.openwebui_container_image
+  container_image_version        = local.openwebui_container_image_version
   ecs_task_execution_role_name   = local.openwebui_ecs_task_execution_role_name
   health_check_endpoint          = local.openwebui_health_check_endpoint
   target_group_name              = local.openwebui_target_group_name
   environment_variables          = local.merged_envs
-  max_memory                     = 1024
-  max_cpu                        = 256
+  max_memory                     = 2048
+  max_cpu                        = 1024
+  HTTPS_enabled                  = true
+  public_dns_name                = "chat.${var.deployment_stage}.${var.domain_name}"
+  wildcard_cert_arn              = module.wildcard_cert.arn
 }
 
+module "openwebui_dns_record" {
+  source       = "../modules/route53"
+  zone_name    = var.domain_name
+  record_name  = "chat.${var.deployment_stage}.${var.domain_name}"
+  alb_dns_name = module.openwebui.alb_dns_name
+  alb_zone_id  = module.openwebui.alb_zone_id
+}
 
 module "battleground" {
   source                         = "../modules/ecs"
@@ -87,4 +103,15 @@ module "battleground" {
   environment_variables          = local.battleground_env
   max_memory                     = 1024
   max_cpu                        = 256
+  HTTPS_enabled                  = true
+  public_dns_name                = "arena.${var.deployment_stage}.${var.domain_name}"
+  wildcard_cert_arn              = module.wildcard_cert.arn
+}
+
+module "battleground_dns_record" {
+  source       = "../modules/route53"
+  zone_name    = var.domain_name
+  record_name  = "arena.${var.deployment_stage}.${var.domain_name}"
+  alb_dns_name = module.battleground.alb_dns_name
+  alb_zone_id  = module.battleground.alb_zone_id
 }

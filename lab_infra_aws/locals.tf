@@ -1,15 +1,3 @@
-# locals {
-#   app_cluster_name               = "hello-world-cluster"
-#   app_task_family                = "hello-world"
-#   app_task_name                  = "hello-world"
-#   app_service_name               = "hello-world-service"
-#   application_load_balancer_name = "hello-world-alb"
-#   availability_zones             = ["eu-west-2"]
-#   container_port                 = 8080
-#   container_image                = "lejipo/hello-world"
-#   ecs_task_execution_role_name   = "ECSTaskExecutionRole"
-#   target_group_name              = "hello-world-alb-group"
-# }
 locals {
   openwebui_app_cluster_name             = "openwebui-cluster"
   openwebui_app_task_family              = "openwebui"
@@ -19,6 +7,7 @@ locals {
   openwebui_availability_zones           = ["eu-west-2"]
   openwebui_container_port               = 8080
   openwebui_container_image              = "lejipo/openweb-custom"
+  openwebui_container_image_version      = "v1.0.0"
   openwebui_ecs_task_execution_role_name = "ECSTaskExecutionRole"
   openwebui_target_group_name            = "openwebui-alb-group"
   openwebui_health_check_endpoint        = "/health"
